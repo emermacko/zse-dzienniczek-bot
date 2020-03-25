@@ -12,15 +12,24 @@ def stronaLogowania():
     while(True):
         os.system('cls')
         print('> Uruchamianie dziennika')
-        driver.get('https://cufs.vulcan.net.pl/bydgoszcz/Account/LogOn?ReturnUrl=%2Fbydgoszcz%2FFS%2FLS%3Fwa%3Dwsignin1.0%26wtrealm%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx%26wctx%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx')
+        try:
+            driver.get('https://cufs.vulcan.net.pl/bydgoszcz/Account/LogOn?ReturnUrl=%2Fbydgoszcz%2FFS%2FLS%3Fwa%3Dwsignin1.0%26wtrealm%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx%26wctx%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx')
+        except:
+            stronaLogowania()
         try:
             x = driver.find_element_by_xpath("//input[@type='submit']")
-            logowanie()
+            break
         except:
+            while(True):
+                try:
+                    x = driver.find_element_by_class_name('neterror')
+                    stronaLogowania()
+                except:
+                    break
             print('Błąd strony logowania')
             time.sleep(5)
             pass
-
+    logowanie()
 
 def logowanie():
     print('> Wpisywanie loginu')
@@ -35,50 +44,60 @@ def logowanie():
 
     print('> Logowanie')
     login_button = driver.find_element_by_css_selector('.center input')
+    print('> Ładowanie strony glownej')
     login_button.submit()
 
-    print('> Ładowanie strony glownej')
+    time.sleep(1)
     while(True):
         try:
             x = driver.find_element_by_class_name('panel')
-            if(x.size() != 0): break
+            break
         except:
-            print('Logowanie :: Wczytywanie strony głównej')
-            time.sleep(5)
+            time.sleep(3)
             pass
 
     print('> Ładowanie wiadomości')
-    driver.get('https://uonetplus-uzytkownik.vulcan.net.pl/bydgoszcz/')
+    while(True):
+        try:
+            driver.get('https://uonetplus-uzytkownik.vulcan.net.pl/bydgoszcz/')
+            break
+        except:
+            time.sleep(1)
+
+    time.sleep(1)
     petla()
-
-'''
-time.sleep(5)
-            if driver.find_element_by_class_name('loginButton').size()>0 or driver.find_element_by_class_name('neterror'):
-                stronaLogowania()
-'''
-
 
 def petla():
 
     while(True):
-
-        while(driver.find_element_by_xpath("//*[contains(@id, 'loadmask')]").size()>0):
-            os.system('cls')
-            print('Ładowanie . . .')
-            time.sleep(5)
+        while(True):
+            try:
+                # x = driver.find_element_by_xpath("//*[contains(@id, 'loadmask')]")
+                driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
+                break
+            except:
+                os.system('cls')
+                print('Ładowanie . . .')
+                time.sleep(3)
 
         try:
             os.system('cls')
-            currTime = datetime.now().strftime("%H:%M:%S")
-            print('\n\n' + 'Wiadomości dzisiaj: [ostatnie odświeżenie: ' + currTime + ']\n')
-            driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
 
-            while(driver.find_element_by_xpath("//*[contains(@id, 'loadmask')]").size()>0):
-            os.system('cls')
-            print('Ładowanie . . .')
-            time.sleep(5)
+            while(True):
+                try:
+                    # x = driver.find_element_by_xpath("//*[contains(@id, 'loadmask')]")
+                    driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
 
-            time.sleep(10)
+                    os.system('cls')
+                    currTime = datetime.now().strftime("%H:%M:%S")
+                    print('\n\n' + 'Wiadomości dzisiaj: [ostatnie odświeżenie: ' + currTime + ']\n')
+                    break
+                except:
+                    os.system('cls')
+                    print('Ładowanie . . .')
+                    time.sleep(3)
+
+            time.sleep(2)
 
             mails = driver.find_elements_by_xpath("//*[contains(@data-boundview, 'gridview-')]")
             topics = driver.find_elements_by_class_name('x-grid-cell-inner')
@@ -89,13 +108,36 @@ def petla():
                 mail.click()
                 i=i+5
                 time.sleep(0.5)
+                while(True):
+                    try:
+                        driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
+                        break
+                    except:
+                        time.sleep(2)
 
-            time.sleep(300)
+            time.sleep(15)
             driver.find_element_by_id('wiadomosci').click()
         except:
-            print('Pętla :: Błąd serwerów czy chuj wie co // ponowne próbowanie')
-            pass
+            print('Błąd serwerów czy chuj wie co // ponowne próbowanie')
+            while(True):
+                try:
+                    try:
+                        x = driver.find_element_by_xpath("//*[contains(@id, 'ribbon-logout-btn')]")
+                    except:
+                        stronaLogowania()
 
+                    xx = driver.find_elements_by_class_name('x-component')
+                    for x in xx:
+                        if(x.text() == "Brak komunikacji z serwerem."): stronaLogowania()
+
+                    x = driver.find_element_by_class_name('loginButton')
+                    stronaLogowania()
+
+                    x = driver.find_element_by_class_name('neterror')
+                    stronaLogowania()
+                except:
+                    break
+            pass
 
 ###
 stronaLogowania()
