@@ -18,7 +18,7 @@ Automatyczne wyświetlanie wiadomości na czas koronaferii
 <br>
  
 ### Konwertowanie na .exe:
-* Pyinstaller - `pip install pyinstaller`
+* Wymagany **Pyinstaller** - `pip install pyinstaller`
 * `pyinstaller --onefile bot.py` •• To samo działanie ma plik `py2exe.bat`
 
 Po przekonwertowaniu python nie jest juz wymagany
@@ -27,4 +27,4 @@ Po przekonwertowaniu python nie jest juz wymagany
 
 ### WebDriver:
 * Wybór przeglądarki - https://pypi.org/project/selenium/#drivers
-* Adekwatnie do tego zmienic w kodzie `12 linijkę`
+* Adekwatnie do tego zmienic w kodzie linijkę: `driver = webdriver.Chrome('ścieżka_do_webdrivera')`
