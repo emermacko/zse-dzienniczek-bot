@@ -18,10 +18,10 @@ Automatyczne wyświetlanie wiadomości na czas koronaferii
 <br>
  
 ### Konwertowanie na .exe:
-* Wymagany **Pyinstaller** - `pip install pyinstaller`
+* Wymagany **pyinstaller** - `pip install pyinstaller`
 * `pyinstaller --onefile bot.py` •• To samo działanie ma plik `py2exe.bat`
 
-Po przekonwertowaniu python nie jest juz wymagany
+**Po przekonwertowaniu python nie jest juz wymagany**
 
 <br>
 
