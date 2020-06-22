@@ -27,4 +27,4 @@ Automatyczne wyświetlanie wiadomości na czas koronaferii
 
 ### WebDriver:
 * Wybór przeglądarki - https://pypi.org/project/selenium/#drivers
-* Adekwatnie do tego zmienic w kodzie linijkę: `driver = webdriver.Chrome('ścieżka_do_webdrivera')`
+* Adekwatnie do tego trzeba zmienic w kodzie linijkę: `driver = webdriver.Chrome('ścieżka_do_webdrivera')`
