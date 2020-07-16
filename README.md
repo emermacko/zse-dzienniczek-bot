@@ -1,5 +1,5 @@
 ## Bot do vulcanowego dziennika
-Automatyczne wyświetlanie wiadomości na czas koronaferii
+Automatyczne wyświetlanie wiadomości na e-dzienniku na czas koronaferii
 
 <br>
 
