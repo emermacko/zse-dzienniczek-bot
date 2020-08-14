@@ -1,43 +1,58 @@
+'''
+    !! Bot sam nie wyjdzie z wiadomosci ktora zawiera link !!
+
+    Wybór folderu wiadomości - 24 linijka - domyślnie odebrane z bieżącego dnia 
+    Interfejs - 27 linijka - Domyślnie brak (headless)
+'''
+
 from selenium import webdriver
 from getpass import getpass
 from datetime import datetime
+
 import os
 import time
+import platform
 
-usr = '' ## <--- EMAIL
-pwd = getpass('> Haslo: ')
-driver = webdriver.Chrome('.\chromedriver.exe')
+clear = 'clear'
+
+wiadomosci = [
+    'odebranRoot',          # Wszystkie wiadomosci
+    'odebraneDzisiaj',      # Wiadomosci z dzisiaj
+    'odebraneTenTydzien'    # Wiadomosci z calego tygodnia
+]
+
+folder = wiadomosci[1]  # <----- Wybor folderu wiadomosci do odczytu
+
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')  # <----- Tryb bez UI
+options.add_argument('--log-level=3')  # Wymagane dla czytelności jeżeli jest --headless
 
 def stronaLogowania():
     while(True):
-        os.system('cls')
-        print('> Uruchamianie dziennika')
+        os.system(clear)
         driver.get('https://cufs.vulcan.net.pl/bydgoszcz/Account/LogOn?ReturnUrl=%2Fbydgoszcz%2FFS%2FLS%3Fwa%3Dwsignin1.0%26wtrealm%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx%26wctx%3Dhttps%253a%252f%252fuonetplus.vulcan.net.pl%252fbydgoszcz%252fLoginEndpoint.aspx')
-        try:
-            x = driver.find_element_by_xpath("//input[@type='submit']")
-            break
-        except:
+
+        time.sleep(1)
+        if not ifExistsCSS('input[type="submit"]'):
             checkForErrors()
-            print('Błąd strony logowania')
+            print('[ERROR] Błąd strony logowania')
             time.sleep(5)
-            pass
+        else:
+            break
+
     logowanie()
 
 def logowanie():
     time.sleep(1)
-    print('> Wpisywanie loginu')
-    username_box = driver.find_element_by_id('LoginName')
-    username_box.send_keys(usr)
+    print('[OK] Logowanie')
+
+    getElementByCSS('#LoginName').send_keys(usr)
     time.sleep(0.5)
 
-    print('> Wpisywanie hasla')
-    password_box = driver.find_element_by_id('Password')
-    password_box.send_keys(pwd)
+    getElementByCSS('#Password').send_keys(pwd)
     time.sleep(0.5)
 
-    print('> Logowanie')
-    login_button = driver.find_element_by_css_selector('.center input')
-    print('> Ładowanie strony glownej')
+    login_button = getElementByCSS('.center input')
     try:
         driver.set_page_load_timeout(10)
         login_button.submit()
@@ -45,16 +60,11 @@ def logowanie():
         stronaLogowania()
 
     time.sleep(1)
-    while(True):
-        try:
-            x = driver.find_element_by_class_name('panel')
-            break
-        except:
-            checkForErrors()
-            time.sleep(3)
-            pass
+    while not ifExistsCSS('.panel'):
+        checkForErrors()
+        time.sleep(3)
 
-    print('> Ładowanie wiadomości')
+    print('[OK] Ładowanie wiadomości')
     while(True):
         try:
             driver.get('https://uonetplus-uzytkownik.vulcan.net.pl/bydgoszcz/')
@@ -67,75 +77,102 @@ def logowanie():
     petla()
 
 def petla():
-
     while(True):
         while(True):
             try:
-                # x = driver.find_element_by_xpath("//*[contains(@id, 'loadmask')]")
-                driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
+                # x = getElementByXPATH("//*[contains(@id, 'loadmask')]")
+                getElementByXPATH(f'//*[contains(@id, {folder})]').click()
                 break
             except:
                 checkForErrors()
-                os.system('cls')
-                print('Ładowanie . . .')
+                os.system(clear)
+                print('[OK] Ładowanie . . .')
                 time.sleep(3)
 
         try:
-            os.system('cls')
+            os.system(clear)
             currTime = datetime.now().strftime("%H:%M:%S")
-            print('\n\n' + 'Wiadomości dzisiaj: [ostatnie odświeżenie: ' + currTime + ']\n')
+            print(f'\n\nWiadomości: [ostatnie odświeżenie: {currTime}]\n')
 
             time.sleep(2)
 
-            mails = driver.find_elements_by_xpath("//*[contains(@data-boundview, 'gridview-')]")
-            topics = driver.find_elements_by_class_name('x-grid-cell-inner')
+            mails = driver.find_elements_by_xpath('//*[contains(@data-boundview, "gridview-")]')
+            topics = getElementsByCSS('.x-grid-cell-inner')
 
             i=1
             for mail in mails:
                 checkForErrors()
-                print (topics[i].text + " ## " + topics[i+1].text)
+                print(f'{topics[i].text} ## {topics[i+1].text}')
                 time.sleep(0.5)
                 mail.click()
                 i=i+5
                 while(True):
                     try:
-                        driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
+                        getElementByXPATH(f'//*[contains(@id, {folder})]').click()
                         break
                     except:
                         time.sleep(2)
 
-            time.sleep(300) ## Czestotliwosc odswiezania (s)
-            driver.find_element_by_id('wiadomosci').click()
+            time.sleep(300)
+            getElementByCSS('#wiadomosci').click()
 
         except:
-            print('Błąd serwerów czy chuj wie co // ponowne próbowanie')
+            print('[ERROR] Błąd serwerów // ponowne próbowanie')
             checkForErrors()
-            pass
 
 def checkForErrors():
     while(True):
         try:
-            try:
-                x = driver.find_element_by_xpath("//*[contains(@id, 'ribbon-logout-btn')]")
-            except:
+            if not ifExistsXPATH('//*[contains(@id, "ribbon-logout-btn")]'):
                 stronaLogowania()
 
-            xx = driver.find_elements_by_class_name('x-component')
+            xx = getElementsByCSS('.x-component')
             for x in xx:
-                if(x.text == "Brak komunikacji z serwerem."): stronaLogowania()
+                if(x.text == "Brak komunikacji z serwerem."):
+                    stronaLogowania()
 
-            x = driver.find_element_by_class_name('loginButton')
+            x = getElementByCSS('.loginButton')
             stronaLogowania()
 
-            x = driver.find_element_by_class_name('neterror')
+            x = getElementByCSS('.neterror')
             stronaLogowania()
         except:
             break
 
+####
+
+def getElementByCSS(selector):
+    return driver.find_element_by_css_selector(selector)
+
+def getElementsByCSS(selector):
+    return driver.find_elements_by_css_selector(selector)
+
+def getElementByXPATH(selector):
+    return driver.find_element_by_xpath(selector)
+
+def ifExistsXPATH(selector):
+    try:
+        getElementByXPATH(selector)
+        return True
+    except:
+        return False
+
+def ifExistsCSS(selector):
+    try:
+        getElementByCSS(selector)
+        return True
+    except:
+        return False
+
 ###
+
+OS = platform.system()
+if OS == 'Windows':
+    clear = 'cls'
+
+os.system(clear)
+usr = '' # <----- EMAIL
+pwd = getpass('> Haslo: ')
+
+driver = webdriver.Chrome(options=options)
 stronaLogowania()
-###
-
-
-#driver.find_element_by_xpath("//*[contains(@id, 'odebraneDzisiaj')]").click()
-#driver.find_element_by_xpath("//*[contains(@id, 'odebraneTenTydzien')]").click()
